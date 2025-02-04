@@ -1,8 +1,8 @@
-import Link from 'next/link';
-import React, { memo, useMemo, useState } from 'react';
-import ReactMarkdown, { type Components } from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { CodeBlock } from './code-block';
+import Link from "next/link";
+import React, { memo, useMemo, useState } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { CodeBlock } from "./code-block";
 
 const components: Partial<Components> = {
   // @ts-expect-error
@@ -91,6 +91,27 @@ const components: Partial<Components> = {
       </h6>
     );
   },
+  tr: ({ node, children, ...props }) => {
+    return (
+      <tr className="border-b border-gray-200" {...props}>
+        {children}
+      </tr>
+    );
+  },
+  td: ({ node, children, ...props }) => {
+    return (
+      <td className="p-2" {...props}>
+        {children}
+      </td>
+    );
+  },
+  th: ({ node, children, ...props }) => {
+    return (
+      <th className="p-2" {...props}>
+        {children}
+      </th>
+    );
+  },
 };
 
 const remarkPlugins = [remarkGfm];
@@ -105,5 +126,5 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
 
 export const Markdown = memo(
   NonMemoizedMarkdown,
-  (prevProps, nextProps) => prevProps.children === nextProps.children,
+  (prevProps, nextProps) => prevProps.children === nextProps.children
 );

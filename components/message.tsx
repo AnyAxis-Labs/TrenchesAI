@@ -134,7 +134,7 @@ const PurePreviewMessage = ({
                       )}
                     </pre>
                   ) : (
-                    <Markdown>{message.content as string}</Markdown>
+                    <Markdown>{message.content}</Markdown>
                   )}
                 </div>
               </div>
