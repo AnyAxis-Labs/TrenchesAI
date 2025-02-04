@@ -1,20 +1,29 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createAppKit } from "@reown/appkit/react";
+import { createAppKit, type Metadata } from "@reown/appkit/react";
 import {
-  mainnet,
-  arbitrum,
   mantle,
   mantleSepoliaTestnet,
+  type AppKitNetwork,
 } from "@reown/appkit/networks";
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
+import { getCsrfToken, signIn, signOut, getSession } from "next-auth/react";
+import type {
+  SIWEVerifyMessageArgs,
+  SIWECreateMessageArgs,
+  SIWESession,
+} from "@reown/appkit-siwe";
+import { createSIWEConfig, formatMessage } from "@reown/appkit-siwe";
 
-export const networks = [mainnet, arbitrum];
+const networks = [mantle, mantleSepoliaTestnet] as [
+  AppKitNetwork,
+  ...AppKitNetwork[]
+];
 
-const projectId = "375bbb04e24df1988fe0f629fbe4096a";
+export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID ?? "";
 //Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
@@ -27,15 +36,82 @@ export const config = wagmiAdapter.wagmiConfig;
 // Set up queryClient
 const queryClient = new QueryClient();
 
-// if (!projectId) {
-//   throw new Error("Project ID is not defined");
-// }
+export const siweConfig = createSIWEConfig({
+  getMessageParams: async () => ({
+    domain: typeof window !== "undefined" ? window.location.host : "",
+    uri: typeof window !== "undefined" ? window.location.origin : "",
+    chains: networks.map((network) => Number(network.id)),
+    statement: "Please sign with your account",
+  }),
+  createMessage: ({ address, ...args }: SIWECreateMessageArgs) =>
+    formatMessage(args, address),
+  getNonce: async () => {
+    try {
+      const nonce = await getCsrfToken();
+      if (!nonce) {
+        throw new Error("Failed to get nonce!");
+      }
+
+      return nonce;
+    } catch (error) {
+      console.error(error);
+      throw new Error("Failed to get nonce!");
+    }
+  },
+  getSession: async () => {
+    const nextAuthSession = await getSession();
+
+    if (!nextAuthSession) {
+      return null;
+    }
+
+    const session = nextAuthSession as unknown as SIWESession;
+
+    // Validate address and chainId types
+    if (
+      typeof session.address !== "string" ||
+      typeof session.chainId !== "number"
+    ) {
+      return null;
+    }
+
+    return {
+      address: session.address,
+      chainId: session.chainId,
+    } satisfies SIWESession;
+  },
+  verifyMessage: async ({ message, signature }: SIWEVerifyMessageArgs) => {
+    try {
+      const success = await signIn("credentials", {
+        message,
+        redirect: false,
+        signature,
+        callbackUrl: "/protected",
+      });
+
+      return Boolean(success?.ok);
+    } catch (error) {
+      return false;
+    }
+  },
+  signOut: async () => {
+    try {
+      await signOut({
+        redirect: false,
+      });
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  },
+});
 
 // Set up metadata
-const metadata = {
-  name: "appkit-example",
-  description: "AppKit Example",
-  url: "https://appkitexampleapp.com", // origin must match your domain & subdomain
+const metadata: Metadata = {
+  name: "defai-terminal",
+  description: "Defai Terminal",
+  url: "https://defai-terminal.vercel.app", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
 
@@ -43,9 +119,10 @@ const metadata = {
 createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [mantle, mantleSepoliaTestnet],
+  networks,
   defaultNetwork: mantle,
   metadata,
+  siweConfig,
   features: {
     analytics: false, // Optional - defaults to your Cloud configuration
   },

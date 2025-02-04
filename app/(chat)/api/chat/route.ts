@@ -64,7 +64,7 @@ export async function POST(request: Request) {
 
   if (!chat) {
     const title = await generateTitleFromUserMessage({ message: userMessage });
-    await saveChat({ id, userId: session.user.id, title });
+    await saveChat({ id, userId: session.user?.id, title });
   }
 
   await saveMessages({
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
           // getSwapRequest: getSwapRequest({ session, dataStream, model }),
         },
         onFinish: async ({ response }) => {
-          if (session.user?.id) {
+          if (session?.user?.id) {
             try {
               const responseMessagesWithoutIncompleteToolCalls =
                 sanitizeResponseMessages(response.messages);
@@ -129,7 +129,7 @@ export async function DELETE(request: Request) {
 
   const session = await auth();
 
-  if (!session || !session.user) {
+  if (!session?.user?.id) {
     return new Response("Unauthorized", { status: 401 });
   }
 
