@@ -43,8 +43,6 @@ const SwapWidget = ({ params }: { params: string }) => {
     formAmount
   );
 
-  console.log("swapInfo", swapInfo);
-
   const amountInUSD = formAmount
     ? new BigNumber(formAmount)
         .times(swapInfo?.token0Price.priceUSD ?? 0)

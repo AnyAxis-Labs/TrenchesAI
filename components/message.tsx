@@ -44,25 +44,30 @@ const PurePreviewMessage = ({
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
 
-  // Parse function call if message content matches XML format
-  const parseFunctionCall = (content: string) => {
-    if (content.includes("<function")) {
-      const nameMatch = content.match(/name="([^"]+)"/);
-      const paramsMatch = content.match(/parameters="([^"]+)"/);
+  // Parse function calls if message content matches XML format
+  const parseFunctionCalls = (content: string) => {
+    const functions = [];
+    const functionMatches = content.matchAll(/<function[^>]*>/g);
+
+    for (const match of functionMatches) {
+      const functionStr = match[0];
+      const nameMatch = functionStr.match(/name="([^"]+)"/);
+      const paramsMatch = functionStr.match(/parameters="([^"]+)"/);
 
       if (nameMatch && paramsMatch) {
-        return {
+        functions.push({
           name: nameMatch[1],
           parameters: paramsMatch[1],
-        };
+        });
       }
     }
-    return null;
+
+    return functions.length > 0 ? functions : null;
   };
 
-  const messageFunction =
+  const messageFunctions =
     typeof message.content === "string"
-      ? parseFunctionCall(message.content)
+      ? parseFunctionCalls(message.content)
       : null;
 
   return (
@@ -127,10 +132,13 @@ const PurePreviewMessage = ({
                       message.role === "user",
                   })}
                 >
-                  {messageFunction ? (
+                  {messageFunctions ? (
                     <pre>
-                      {messageFunction.name === "swap_token" && (
-                        <SwapWidget params={messageFunction.parameters} />
+                      {messageFunctions.map(
+                        (functionCall) =>
+                          functionCall.name === "swap_token" && (
+                            <SwapWidget params={functionCall.parameters} />
+                          )
                       )}
                     </pre>
                   ) : (
