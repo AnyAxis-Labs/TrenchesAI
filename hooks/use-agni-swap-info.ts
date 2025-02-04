@@ -42,5 +42,6 @@ export const useAgniSwapInfo = (
       return swapInfo;
     },
     enabled: !!address && !!sourceToken && !!targetToken,
+    staleTime: 1000 * 30,
   });
 };

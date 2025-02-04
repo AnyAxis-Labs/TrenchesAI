@@ -9,6 +9,8 @@ import { Form, FormControl, FormField, FormItem } from "./form";
 import { useForm } from "react-hook-form";
 import { useAgniSwapInfo } from "@/hooks/use-agni-swap-info";
 import { BigNumber } from "agni-sdk";
+import { useTokenApproval } from "@/hooks/use-token-approval";
+import { useAgniSwap } from "@/hooks/use-agni-swap";
 
 interface SwapParams {
   amount: string;
@@ -43,6 +45,8 @@ const SwapWidget = ({ params }: { params: string }) => {
     formAmount
   );
 
+  const { mutateAsync: swap } = useAgniSwap(swapInfo ?? undefined);
+
   const amountInUSD = formAmount
     ? new BigNumber(formAmount)
         .times(swapInfo?.token0Price.priceUSD ?? 0)
@@ -56,11 +60,8 @@ const SwapWidget = ({ params }: { params: string }) => {
         .toFixed(2, BigNumber.ROUND_DOWN)
     : 0;
 
-  function onSubmit(values: SwapFormValues) {
-    if (swapInfo?.isWrap) {
-      // TODO:
-      return;
-    }
+  async function onSubmit() {
+    await swap();
   }
 
   return (
@@ -120,7 +121,11 @@ const SwapWidget = ({ params }: { params: string }) => {
         <Card className="w-full max-w-md mx-auto">
           <CardContent className="space-y-4 p-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
+              <form
+                onSubmit={form.handleSubmit(onSubmit, (error) => {
+                  console.log(error);
+                })}
+              >
                 {/* Sell Section */}
                 <div className="space-y-2">
                   <div className="text-lg font-medium">Sell</div>
