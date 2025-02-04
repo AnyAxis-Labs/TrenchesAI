@@ -28,9 +28,9 @@ const SwapWidget = ({ params }: { params: string }) => {
 
   const formAmount = form.watch("amount");
 
-  const { data: sourceToken, isLoading: sourceTokenLoading } =
+  const { data: sourceToken, isPending: sourceTokenLoading } =
     useTokenFromSymbol(source);
-  const { data: targetToken, isLoading: targetTokenLoading } =
+  const { data: targetToken, isPending: targetTokenLoading } =
     useTokenFromSymbol(target);
 
   const {

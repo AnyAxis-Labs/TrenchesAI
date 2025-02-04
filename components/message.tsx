@@ -137,7 +137,10 @@ const PurePreviewMessage = ({
                       {messageFunctions.map(
                         (functionCall) =>
                           functionCall.name === "swap_token" && (
-                            <SwapWidget params={functionCall.parameters} />
+                            <SwapWidget
+                              params={functionCall.parameters}
+                              key={functionCall.parameters}
+                            />
                           )
                       )}
                     </pre>

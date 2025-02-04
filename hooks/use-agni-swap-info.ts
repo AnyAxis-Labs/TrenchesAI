@@ -32,6 +32,7 @@ export const useAgniSwapInfo = (
         targetToken,
         address
       );
+
       await swapInfo.getTokenPrice("day");
 
       if (amount) {
