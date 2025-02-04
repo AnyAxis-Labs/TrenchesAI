@@ -84,9 +84,10 @@ export const siweConfig = createSIWEConfig({
     try {
       const success = await signIn("credentials", {
         message,
-        redirect: false,
+        redirect: true,
         signature,
         callbackUrl: "/protected",
+        redirectTo: "/",
       });
 
       return Boolean(success?.ok);
@@ -97,7 +98,8 @@ export const siweConfig = createSIWEConfig({
   signOut: async () => {
     try {
       await signOut({
-        redirect: false,
+        redirect: true,
+        redirectTo: "/login",
       });
 
       return true;
