@@ -13,7 +13,7 @@ const ButtonWithWallet = React.forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     return (
-      <Button ref={ref} {...props} onClick={() => open()}>
+      <Button ref={ref} {...props} onClick={() => open()} disabled={false}>
         Connect Wallet
       </Button>
     );

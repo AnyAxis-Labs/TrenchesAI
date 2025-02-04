@@ -1,25 +1,24 @@
 "use client";
 
+import type { Vote } from "@/lib/db/schema";
+import { cn } from "@/lib/utils";
 import type { ChatRequestOptions, Message } from "ai";
 import cx from "classnames";
+import equal from "fast-deep-equal";
 import { AnimatePresence, motion } from "framer-motion";
-import { memo, useMemo, useState } from "react";
-
-import type { Vote } from "@/lib/db/schema";
-
+import { Fragment, memo, useState } from "react";
 import { DocumentToolCall, DocumentToolResult } from "./document";
+import { DocumentPreview } from "./document-preview";
 import { PencilEditIcon, SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";
-import { PreviewAttachment } from "./preview-attachment";
-import { Weather } from "./weather";
-import equal from "fast-deep-equal";
-import { cn } from "@/lib/utils";
-import { Button } from "./ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { MessageEditor } from "./message-editor";
-import { DocumentPreview } from "./document-preview";
+import { PreviewAttachment } from "./preview-attachment";
+import { Button } from "./ui/button";
 import SwapWidget from "./ui/swap-widget";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Weather } from "./weather";
+import StakeWidget from "./ui/stake-widget";
 
 const PurePreviewMessage = ({
   chatId,
@@ -69,6 +68,7 @@ const PurePreviewMessage = ({
     typeof message.content === "string"
       ? parseFunctionCalls(message.content)
       : null;
+  console.log(messageFunctions);
 
   return (
     <AnimatePresence>
@@ -134,15 +134,16 @@ const PurePreviewMessage = ({
                 >
                   {messageFunctions ? (
                     <pre>
-                      {messageFunctions.map(
-                        (functionCall) =>
-                          functionCall.name === "swap_token" && (
-                            <SwapWidget
-                              params={functionCall.parameters}
-                              key={functionCall.parameters}
-                            />
-                          )
-                      )}
+                      {messageFunctions.map((functionCall) => (
+                        <Fragment key={functionCall.parameters}>
+                          {functionCall.name === "swap_token" && (
+                            <SwapWidget params={functionCall.parameters} />
+                          )}
+                          {functionCall.name === "stake_token" && (
+                            <StakeWidget params={functionCall.parameters} />
+                          )}
+                        </Fragment>
+                      ))}
                     </pre>
                   ) : (
                     <Markdown>{message.content}</Markdown>
