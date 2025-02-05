@@ -31,10 +31,18 @@ This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-export const regularPrompt =
-  "You are a friendly assistant! Keep your responses concise and helpful.";
+const swapPrompt = `
+ A swap request will be provided to you. You need to extract the source and target tokens symbols and amount for the swap request.
 
-export const systemPrompt = [regularPrompt].join("\n\n");
+ **Using \`getSwapRequest\`:**
+ - For swap requests with the following keywords: "swap", "exchange", "convert", "trade", "swap tokens", "exchange tokens", "convert tokens", "trade tokens"
+
+
+`;
+
+export const regularPrompt = "";
+
+export const systemPrompt = [regularPrompt, swapPrompt].join("\n\n");
 
 export const codePrompt = `
 You are a Python code generator that creates self-contained, executable code snippets. When writing code:

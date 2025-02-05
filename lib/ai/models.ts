@@ -11,7 +11,7 @@ export const models: Array<Model> = [
   {
     id: "google/gemma-2-9b-it",
     label: "Gemma 2 9B IT",
-    apiIdentifier: "gemma-2-9b-it",
+    apiIdentifier: "google/gemma-2-9b-it",
     description: "For complex, multi-step tasks",
   },
 ] as const;

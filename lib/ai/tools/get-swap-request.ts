@@ -19,12 +19,14 @@ export const getSwapRequest = ({
 }: GetSwapRequestProps) =>
   tool({
     description:
-      "get the correct source and target tokens and amount with correct decimals for a swap request",
+      "get the correct source and target tokens symbols and amount for a swap request",
     parameters: z.object({
       message: z.string(),
     }),
     execute: async ({ message }) => {
       const id = generateUUID();
+
+      console.log("message", message);
 
       const { fullStream } = streamObject({
         model: customModel(model.apiIdentifier),
@@ -76,7 +78,7 @@ export const getSwapRequest = ({
 
       return {
         id,
-        content: "A swap request was created and is now visible to the user.",
+        content: "A swap request was created.",
       };
     },
   });

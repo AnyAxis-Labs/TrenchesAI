@@ -137,6 +137,7 @@ function ContextProvider({ children }: { children: ReactNode }) {
     <WagmiProvider
       config={wagmiAdapter.wagmiConfig as Config}
       initialState={initialState}
+      reconnectOnMount
     >
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
