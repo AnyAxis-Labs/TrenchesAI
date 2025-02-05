@@ -12,7 +12,11 @@ export const useTokenFromSymbol = (symbol?: string) => {
       const tokenList = await tokenMangerApi.getTokenByTokenList();
       const tokens = tokenList.concat(tokenMangerApi.systemTokens());
 
-      return tokens.find((token) => token.symbol === symbol) || null;
+      return (
+        tokens.find(
+          (token) => token.symbol?.toLowerCase() === symbol?.toLowerCase()
+        ) || null
+      );
     },
     enabled: !!symbol,
   });

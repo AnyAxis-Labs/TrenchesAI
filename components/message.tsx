@@ -68,7 +68,6 @@ const PurePreviewMessage = ({
     typeof message.content === "string"
       ? parseFunctionCalls(message.content)
       : null;
-  console.log(messageFunctions);
 
   return (
     <AnimatePresence>

@@ -1,16 +1,15 @@
-import { ButtonWithWallet } from "./button-with-wallet";
-import { ChevronDown, Loader2 } from "lucide-react";
-import { Card, CardContent } from "./card";
-import { Input } from "./input";
-import { Button } from "./button";
-import { parseQueryString } from "@/lib/utils";
-import { useTokenFromSymbol } from "@/hooks/use-token-from-symbol";
-import { Form, FormControl, FormField, FormItem } from "./form";
-import { useForm } from "react-hook-form";
-import { useAgniSwapInfo } from "@/hooks/use-agni-swap-info";
-import { BigNumber } from "agni-sdk";
-import { useTokenApproval } from "@/hooks/use-token-approval";
 import { useAgniSwap } from "@/hooks/use-agni-swap";
+import { useAgniSwapInfo } from "@/hooks/use-agni-swap-info";
+import { useTokenFromSymbol } from "@/hooks/use-token-from-symbol";
+import { parseQueryString } from "@/lib/utils";
+import { BigNumber } from "agni-sdk";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { Button } from "./button";
+import { ButtonWithWallet } from "./button-with-wallet";
+import { Card, CardContent } from "./card";
+import { Form, FormControl, FormField, FormItem } from "./form";
+import { Input } from "./input";
 
 interface SwapParams {
   amount: string;
@@ -106,7 +105,7 @@ const SwapWidget = ({ params }: { params: string }) => {
             Loading swap quote...
           </div>
         )}
-        {!swapInfoLoading && !swapInfo && (
+        {!swapInfoLoading && !swapInfoPending && !swapInfo && (
           <div className="text-center text-destructive">
             Cannot load swap quote
           </div>
@@ -151,7 +150,11 @@ const SwapWidget = ({ params }: { params: string }) => {
                         </FormItem>
                       )}
                     />
-                    <Button variant="ghost" className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2"
+                      type="button"
+                    >
                       <img
                         src={sourceToken.logoURI}
                         alt={sourceToken.symbol}
@@ -192,7 +195,11 @@ const SwapWidget = ({ params }: { params: string }) => {
                         </FormItem>
                       )}
                     />
-                    <Button variant="ghost" className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2"
+                      type="button"
+                    >
                       <img
                         src={targetToken.logoURI}
                         alt={targetToken.symbol}
