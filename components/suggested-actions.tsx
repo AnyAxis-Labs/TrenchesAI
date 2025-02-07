@@ -16,9 +16,29 @@ interface SuggestedActionsProps {
 function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
   const suggestedActions = [
     {
+      title: "Knowledge",
+      label: "What is Mantle?",
+      action: "What is Mantle?",
+    },
+    {
+      title: "Knowledge",
+      label: "Top Defi protocols on Mantle",
+      action: "Top Defi protocols on Mantle",
+    },
+    {
+      title: "Knowledge",
+      label: "Tell me about Agni Finance",
+      action: "Tell me about Agni Finance",
+    },
+    {
+      title: "Trending",
+      label: "Top tokens on Mantle",
+      action: "Top tokens on Mantle",
+    },
+    {
       title: "Swap",
-      label: "Swap 1 MNT to USDC",
-      action: "Swap 1 MNT to USDC",
+      label: "Swap 0.1 MNT to USDT",
+      action: "Swap 0.1 MNT to USDT",
     },
   ];
 

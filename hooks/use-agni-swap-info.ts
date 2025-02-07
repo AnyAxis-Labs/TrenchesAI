@@ -27,6 +27,10 @@ export const useAgniSwapInfo = (
       if (!address || !sourceToken || !targetToken) {
         return null;
       }
+
+      console.log("sourceToken", sourceToken);
+      console.log("targetToken", targetToken);
+
       const swapInfo = await swapV3Api.swapInfo(
         sourceToken,
         targetToken,

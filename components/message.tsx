@@ -69,6 +69,8 @@ const PurePreviewMessage = ({
       ? parseFunctionCalls(message.content)
       : null;
 
+  // console.log("messageFunctions", messageFunctions)
+
   return (
     <AnimatePresence>
       <motion.div

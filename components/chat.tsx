@@ -70,13 +70,25 @@ export function Chat({
           isReadonly={isReadonly}
           onExport={() => {
             // download messages as json
-            const messagesJson = JSON.stringify(messages, null, 2);
-            const blob = new Blob([messagesJson], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `messages-${id}.json`;
-            a.click();
+            // Wait for messages to be fully loaded
+            setTimeout(() => {
+              if (!messages || messages.length === 0) {
+                console.warn("No messages to export");
+                return;
+              }
+              // Create a deep copy to ensure we capture all message data
+              const messagesCopy = JSON.parse(JSON.stringify(messages));
+              const messagesJson = JSON.stringify(messagesCopy, null, 2);
+              const blob = new Blob([messagesJson], {
+                type: "application/json",
+              });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `messages-${id}.json`;
+              a.click();
+              URL.revokeObjectURL(url); // Clean up the URL after download
+            }, 100); // Small delay to ensure messages are loaded
           }}
         />
 
