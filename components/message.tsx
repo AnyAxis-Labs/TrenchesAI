@@ -19,6 +19,7 @@ import SwapWidget from "./ui/swap-widget";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Weather } from "./weather";
 import StakeWidget from "./ui/stake-widget";
+import BridgeWidget from "./ui/bridge-widget";
 
 const PurePreviewMessage = ({
   chatId,
@@ -142,6 +143,9 @@ const PurePreviewMessage = ({
                           )}
                           {functionCall.name === "stake_token" && (
                             <StakeWidget params={functionCall.parameters} />
+                          )}
+                          {functionCall.name === "bridge_token" && (
+                            <BridgeWidget params={functionCall.parameters} />
                           )}
                         </Fragment>
                       ))}
