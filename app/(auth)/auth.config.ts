@@ -1,17 +1,21 @@
 import { createUser, findUser, getUser } from "@/lib/db/queries";
-import {
-  getAddressFromMessage,
-  getChainIdFromMessage,
-  type SIWESession,
-  verifySignature,
-} from "@reown/appkit-siwe";
+import { type SIWXSession, SIWXMessage } from "@reown/appkit";
 import type { NextAuthConfig } from "next-auth";
 import credentialsProvider from "next-auth/providers/credentials";
 
+function getAddressFromMessage(message: string) {
+  const address = message.split("\n")[1].trim();
+  return address;
+}
+
+function getChainIdFromMessage(message: string) {
+  const chainId = message.split("\n")[5].split(":")[1].trim();
+  return chainId;
+}
 declare module "next-auth" {
-  interface Session extends SIWESession {
+  interface Session extends SIWXSession {
     address: string;
-    chainId: number;
+    chainId: string;
     user: {
       id: string;
       address: string;
@@ -49,32 +53,21 @@ const providers = [
         if (!credentials?.message || typeof credentials.message !== "string") {
           throw new Error("SiweMessage is undefined");
         }
-        const { message, signature } = credentials;
+        const { message } = credentials;
+
         const address = getAddressFromMessage(message);
         const chainId = getChainIdFromMessage(message);
 
-        const isValid = await verifySignature({
-          address,
-          message,
-          signature: signature as string,
-          chainId,
-          projectId,
-        });
-
-        if (isValid) {
-          const users = await findUser(address);
-          let user = users[0];
-          if (users.length === 0) {
-            await createUser(address);
-            [user] = await findUser(address);
-          }
-          return {
-            ...user,
-            chainId: Number.parseInt(chainId.split(":")[1]),
-          };
+        const users = await findUser(address);
+        let user = users[0];
+        if (users.length === 0) {
+          await createUser(address);
+          [user] = await findUser(address);
         }
-
-        return null;
+        return {
+          ...user,
+          chainId,
+        };
       } catch (e) {
         return null;
       }
@@ -93,7 +86,7 @@ export const authConfig = {
     strategy: "jwt",
   },
   callbacks: {
-    async session({ session, token, ...rest }) {
+    async session({ session, token }) {
       if (!token.user) {
         return session;
       }
@@ -102,7 +95,6 @@ export const authConfig = {
 
       if (user.address) {
         session.address = user.address;
-        session.chainId = user.chainId;
       }
       session.user = user;
       return session;

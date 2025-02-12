@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import { Toaster } from "sonner";
 
 import { ThemeProvider } from "@/components/theme-provider";
+import ContextProvider from "@/components/providers/context-provider";
 
 import "./globals.css";
-import ContextProvider from "@/components/providers/context-provider";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://chat.vercel.ai"),
-  title: "Defai Chatbot",
-  description: "Defai chatbot for trading.",
+  title: "AI Chatbot",
+  description: "AI chatbot for trading.",
 };
 
 export const viewport = {

@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return config;
   },
   experimental: {
-    ppr: true,
+    // ppr: true,
   },
   images: {
     remotePatterns: [

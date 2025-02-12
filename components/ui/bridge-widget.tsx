@@ -22,7 +22,7 @@ const BridgeWidget = ({ params }: { params: string }) => {
   console.log(params, token);
 
   const widgetConfig: WidgetConfig = {
-    integrator: "Defai",
+    integrator: "AI",
     variant: "compact",
     subvariant: "refuel",
     fromChain: chain?.id,
@@ -37,7 +37,7 @@ const BridgeWidget = ({ params }: { params: string }) => {
       <h1 className="text-2xl font-bold text-center">Bridge Agent</h1>
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="space-y-4 p-6">
-          <LiFiWidget integrator="Defai" config={widgetConfig} />
+          <LiFiWidget integrator="AI" config={widgetConfig} />
         </CardContent>
       </Card>
     </div>
