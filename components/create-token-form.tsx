@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import {
   type CreateTokenParams,
   useCreateTokenSc,
-} from "@/hooks/use-create-token-sc";
+} from "@/hooks/use-create-solana-token";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 
@@ -32,7 +32,6 @@ export const CreateTokenForm = ({
   onSuccess,
   onCancel,
 }: CreateTokenFormProps) => {
-  console.log(initialValues);
   const { mutateAsync: createToken, isPending: isCreatingToken } =
     useCreateTokenSc();
 
@@ -70,10 +69,10 @@ export const CreateTokenForm = ({
       const token = await createToken(data);
       await createTelegramGroup({
         ...data,
-        message: `🚀 CA: ${token.coinType}`,
+        message: `🚀 CA: ${token.mint.toBase58()}`,
       });
       form.reset();
-      onSuccess({ tokenAddress: token.coinType });
+      onSuccess({ tokenAddress: token.mint.toBase58() });
     } catch (error) {
       console.error("Error creating token:", error);
     }

@@ -32,13 +32,14 @@ function PureChatHeader({
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
       <SidebarToggle />
-      <Button
+      {/* <Button
         variant="secondary"
         onClick={onExport}
         className="md:px-2 px-2 md:h-fit"
       >
         Export
-      </Button>
+      </Button> */}
+      <appkit-button />
       {(!open || windowWidth < 768) && (
         <Tooltip>
           <TooltipTrigger asChild>

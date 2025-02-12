@@ -1,11 +1,10 @@
-import { useAppKit } from "@reown/appkit/react";
+import { useAppKit, useAppKitAccount } from "@reown/appkit/react";
 import React from "react";
-import { useAccount } from "wagmi";
 import { Button, type ButtonProps } from "./button";
 
 const ButtonWithWallet = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, ...props }, ref) => {
-    const { isConnected } = useAccount();
+    const { isConnected } = useAppKitAccount();
     const { open } = useAppKit();
 
     if (isConnected) {

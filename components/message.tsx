@@ -200,6 +200,7 @@ const PurePreviewMessage = ({
                                   id: generateUUID(),
                                   role: "assistant",
                                   content: `🚀 CA: ${tokenAddress}`,
+                                  createdAt: new Date(),
                                 } as Message;
 
                                 const newMessages = [...messages, newMessage];
@@ -231,6 +232,7 @@ const PurePreviewMessage = ({
                                       id: generateUUID(),
                                       role: "assistant",
                                       content: `Action cancelled`,
+                                      createdAt: new Date(),
                                     },
                                   ]);
 
