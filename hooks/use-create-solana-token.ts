@@ -16,7 +16,6 @@ import {
 } from "@metaplex-foundation/umi";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { createSignerFromWalletAdapter } from "@metaplex-foundation/umi-signer-wallet-adapters";
-import { mockStorage } from "@metaplex-foundation/umi-storage-mock";
 import { base58 } from "@metaplex-foundation/umi/serializers";
 import {
   type Provider,
@@ -24,6 +23,7 @@ import {
 } from "@reown/appkit-adapter-solana/react";
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import { useMutation } from "@tanstack/react-query";
+import axios from "axios";
 import BigNumber from "bignumber.js";
 import { toast } from "sonner";
 
@@ -69,7 +69,6 @@ export const useCreateTokenSc = () => {
 
       try {
         const umi = createUmi(connection.rpcEndpoint)
-          .use(mockStorage())
           .use(mplTokenMetadata())
           .use(mplToolbox())
           .use(
@@ -97,12 +96,15 @@ export const useCreateTokenSc = () => {
         // },{
 
         // });
-        const metadataUri = await umi.uploader.uploadJson({
+
+        const { data } = await axios.post("/api/storage/web3", {
           name: name,
           symbol: symbol,
           description: description,
           image: url,
         });
+
+        const metadataUri = data.url;
 
         const mintSigner = generateSigner(umi);
 
