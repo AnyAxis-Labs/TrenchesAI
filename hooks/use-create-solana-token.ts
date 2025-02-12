@@ -1,28 +1,31 @@
 import {
+  createFungible,
+  mplTokenMetadata,
+} from "@metaplex-foundation/mpl-token-metadata";
+import {
+  createTokenIfMissing,
+  findAssociatedTokenPda,
+  getSplAssociatedTokenProgramId,
+  mintTokensTo,
+  mplToolbox,
+} from "@metaplex-foundation/mpl-toolbox";
+import {
+  generateSigner,
+  percentAmount,
+  signerIdentity,
+} from "@metaplex-foundation/umi";
+import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
+import { createSignerFromWalletAdapter } from "@metaplex-foundation/umi-signer-wallet-adapters";
+import { mockStorage } from "@metaplex-foundation/umi-storage-mock";
+import { base58 } from "@metaplex-foundation/umi/serializers";
+import {
   type Provider,
   useAppKitConnection,
 } from "@reown/appkit-adapter-solana/react";
 import { useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
-import {
-  ASSOCIATED_TOKEN_PROGRAM_ID,
-  MINT_SIZE,
-  TOKEN_PROGRAM_ID,
-  createAssociatedTokenAccountInstruction,
-  createInitializeInstruction,
-  createInitializeMintInstruction,
-  createMintToInstruction,
-  getAssociatedTokenAddress,
-  getMinimumBalanceForRentExemptMint,
-} from "@solana/spl-token";
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
 import { useMutation } from "@tanstack/react-query";
+import BigNumber from "bignumber.js";
 import { toast } from "sonner";
-import { createCreateMetadataAccountV3Instruction } from "@solana/spl-token-metadata";
 
 // Types
 export interface CreateTokenParams {
@@ -33,7 +36,7 @@ export interface CreateTokenParams {
 }
 
 export interface TokenCreationResult {
-  mint: PublicKey;
+  mint: string;
   signature: string;
 }
 
@@ -51,96 +54,100 @@ export const useCreateTokenSc = () => {
       name,
       symbol,
       url,
+      description,
     }: CreateTokenParams): Promise<TokenCreationResult> => {
       if (!connection || !address) {
         throw new Error("Connection or address not found");
       }
       toast.loading("Creating token...");
 
-      const publicKey = walletProvider.publicKey;
-
-      if (!publicKey) {
+      if (!walletProvider.publicKey) {
         throw new Error("Public key not found");
       }
 
-      try {
-        const latestBlockhash = await connection.getLatestBlockhash();
+      const publicKey = walletProvider.publicKey;
 
-        const mintKeypair = Keypair.generate();
-        const lamports = await getMinimumBalanceForRentExemptMint(connection);
-        const transaction = new Transaction({
-          recentBlockhash: latestBlockhash?.blockhash,
-          feePayer: publicKey,
+      try {
+        const umi = createUmi(connection.rpcEndpoint)
+          .use(mockStorage())
+          .use(mplTokenMetadata())
+          .use(mplToolbox())
+          .use(
+            signerIdentity(
+              createSignerFromWalletAdapter({
+                publicKey,
+                signTransaction: async (tx) => {
+                  return walletProvider.signTransaction(tx);
+                },
+                signMessage: async (message) => {
+                  return walletProvider.signMessage(message);
+                },
+                signAllTransactions(transactions) {
+                  return walletProvider.signAllTransactions(transactions);
+                },
+              })
+            )
+          );
+
+        // const metadataUri = await umi.uploader.uploadJson({
+        //   name: name,
+        //   symbol: symbol,
+        //   description: description,
+        //   image: url,
+        // },{
+
+        // });
+        const metadataUri = await umi.uploader.uploadJson({
+          name: name,
+          symbol: symbol,
+          description: description,
+          image: url,
         });
 
-        const tokenATA = await getAssociatedTokenAddress(
-          mintKeypair.publicKey,
-          publicKey,
-          false,
-          TOKEN_PROGRAM_ID,
-          ASSOCIATED_TOKEN_PROGRAM_ID
-        );
+        const mintSigner = generateSigner(umi);
 
-        PublicKey.findProgramAddressSync;
+        // Creating the mintIx
+        const createFungibleIx = await createFungible(umi, {
+          mint: mintSigner,
+          name: name,
+          uri: metadataUri, // we use the `metadataUri` variable we created earlier that is storing our uri.
+          sellerFeeBasisPoints: percentAmount(0),
+          decimals: TOKEN_DECIMALS, // set the amount of decimals you want your token to have.
+          symbol,
+        });
 
-        transaction.add(
-          // Create mint account
-          SystemProgram.createAccount({
-            fromPubkey: publicKey,
-            newAccountPubkey: mintKeypair.publicKey,
-            space: MINT_SIZE,
-            lamports: lamports,
-            programId: TOKEN_PROGRAM_ID,
+        // This instruction will create a new Token Account if required, if one is found then it skips.
+        const createTokenIx = createTokenIfMissing(umi, {
+          mint: mintSigner.publicKey,
+          owner: umi.identity.publicKey,
+          ataProgram: getSplAssociatedTokenProgramId(umi),
+        });
+
+        // The final instruction (if required) is to mint the tokens to the token account in the previous ix.
+
+        const mintTokensIx = mintTokensTo(umi, {
+          mint: mintSigner.publicKey,
+          token: findAssociatedTokenPda(umi, {
+            mint: mintSigner.publicKey,
+            owner: umi.identity.publicKey,
           }),
-          // Initialize mint account
-          createInitializeMintInstruction(
-            mintKeypair.publicKey,
-            TOKEN_DECIMALS,
-            publicKey,
-            publicKey,
-            TOKEN_PROGRAM_ID
-          ),
-          // Create associated token account
-          createAssociatedTokenAccountInstruction(
-            publicKey,
-            tokenATA,
-            publicKey,
-            mintKeypair.publicKey
-          ),
-          // Mint tokens to associated token account
-          createMintToInstruction(
-            mintKeypair.publicKey,
-            tokenATA,
-            publicKey,
-            MINT_AMOUNT * Math.pow(10, TOKEN_DECIMALS)
-          ),
-          createCreateMetadataAccountV3Instruction
-          // createInitializeInstruction({
-          //   programId: TOKEN_PROGRAM_ID,
-          //   mint: mintKeypair.publicKey,
-          //   metadata: mintKeypair.publicKey,
-          //   name: name,
-          //   symbol: symbol,
-          //   uri: url,
-          //   mintAuthority: publicKey,
-          //   updateAuthority: publicKey,
-          // })
-        );
+          amount: new BigNumber(MINT_AMOUNT)
+            .times(10 ** TOKEN_DECIMALS)
+            .toNumber(),
+        });
 
-        const signature = await walletProvider.sendTransaction(
-          transaction,
-          connection,
-          {
-            signers: [mintKeypair],
-          }
-        );
+        console.log("Sending transaction");
+        const tx = await createFungibleIx
+          .add(createTokenIx)
+          .add(mintTokensIx)
+          .sendAndConfirm(umi);
 
         toast.dismiss();
-        toast.success(`Created token ${mintKeypair.publicKey.toBase58()}`);
+        toast.success(`Created token ${mintSigner.publicKey}`);
 
         return {
-          mint: mintKeypair.publicKey,
-          signature,
+          mint: mintSigner.publicKey,
+          signature: base58.deserialize(tx.signature)[0],
         };
       } catch (error) {
         toast.dismiss();
