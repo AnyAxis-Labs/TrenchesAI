@@ -21,18 +21,14 @@ import {
   sanitizeResponseMessages,
 } from "@/lib/utils";
 
+import { generateMeme } from "@/lib/ai/tools/generate-meme";
 import { generateTitleFromUserMessage } from "../../actions";
-import { createDocument } from "@/lib/ai/tools/create-document";
-import { updateDocument } from "@/lib/ai/tools/update-document";
-import { requestSuggestions } from "@/lib/ai/tools/request-suggestions";
-import { getWeather } from "@/lib/ai/tools/get-weather";
-import { getSwapRequest } from "@/lib/ai/tools/get-swap-request";
 
 export const maxDuration = 60;
 
-type AllowedTools = "getSwapRequest";
+type AllowedTools = "generateMeme";
 
-const allTools: AllowedTools[] = ["getSwapRequest"];
+const allTools: AllowedTools[] = ["generateMeme"];
 
 export async function POST(request: Request) {
   const {
@@ -78,11 +74,11 @@ export async function POST(request: Request) {
         system: systemPrompt,
         messages,
         maxSteps: 5,
-        // experimental_activeTools: allTools,
+        experimental_activeTools: allTools,
         experimental_transform: smoothStream({ chunking: "word" }),
         experimental_generateMessageId: generateUUID,
         tools: {
-          // getSwapRequest: getSwapRequest({ session, dataStream, model }),
+          generateMeme,
         },
         onFinish: async ({ response }) => {
           if (session?.user?.id) {

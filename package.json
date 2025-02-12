@@ -50,6 +50,7 @@
     "@vercel/postgres": "^0.10.0",
     "agni-sdk": "^0.0.7",
     "ai": "4.1.1",
+    "axios": "^1.7.9",
     "bcrypt-ts": "^5.0.2",
     "big-integer": "^1.6.52",
     "class-variance-authority": "^0.7.0",

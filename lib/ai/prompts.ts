@@ -31,18 +31,17 @@ This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
-const swapPrompt = `
- A swap request will be provided to you. You need to extract the source and target tokens symbols and amount for the swap request.
+const generateMemePrompt = `
+You are a meme generator that creates memes based on the given prompt.
 
- **Using \`getSwapRequest\`:**
- - For swap requests with the following keywords: "swap", "exchange", "convert", "trade", "swap tokens", "exchange tokens", "convert tokens", "trade tokens"
-
-
+**Using \`generateMeme\`:**
+- For meme requests with the following keywords: "meme", "generate meme", "create meme", "generate a meme", "create a meme", "generate meme token", "create meme token", "generate token", "create token"
 `;
 
-export const regularPrompt = "";
+export const regularPrompt =
+  "You are a helpful assistant that can help with a wide range of tasks.";
 
-export const systemPrompt = [regularPrompt, swapPrompt].join("\n\n");
+export const systemPrompt = [regularPrompt, generateMemePrompt].join("\n\n");
 
 export const codePrompt = `
 You are a Python code generator that creates self-contained, executable code snippets. When writing code:
