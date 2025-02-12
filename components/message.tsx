@@ -2,7 +2,7 @@
 
 import type { ToolName } from "@/lib/ai/tools";
 import type { Vote } from "@/lib/db/schema";
-import { cn } from "@/lib/utils";
+import { cn, generateUUID } from "@/lib/utils";
 import type { ChatRequestOptions, Message } from "ai";
 import cx from "classnames";
 import equal from "fast-deep-equal";
@@ -19,6 +19,7 @@ import StakeWidget from "./ui/stake-widget";
 import SwapWidget from "./ui/swap-widget";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { CreateTokenForm } from "./create-token-form";
+import { updateMessages } from "@/app/(chat)/actions";
 
 const PurePreviewMessage = ({
   chatId,
@@ -193,8 +194,51 @@ const PurePreviewMessage = ({
                               ),
                               url: result.meme_image,
                             }}
-                            onSuccess={() => {}}
-                            onCancel={() => {}}
+                            onSuccess={({ tokenAddress }) => {
+                              setMessages((messages) => {
+                                const newMessage: Message = {
+                                  id: generateUUID(),
+                                  role: "assistant",
+                                  content: `🚀 CA: ${tokenAddress}`,
+                                } as Message;
+
+                                const newMessages = [...messages, newMessage];
+
+                                updateMessages(chatId, [newMessage]);
+
+                                return newMessages;
+                              });
+                            }}
+                            onCancel={() => {
+                              setMessages((messages) => {
+                                const newMessages = messages
+                                  .map((msg) => {
+                                    if (msg.id === message.id) {
+                                      return {
+                                        ...msg,
+                                        toolInvocations:
+                                          msg.toolInvocations?.filter(
+                                            (toolInvocation) =>
+                                              toolInvocation.toolCallId !==
+                                              toolCallId
+                                          ),
+                                      };
+                                    }
+                                    return msg;
+                                  })
+                                  .concat([
+                                    {
+                                      id: generateUUID(),
+                                      role: "assistant",
+                                      content: `Action cancelled`,
+                                    },
+                                  ]);
+
+                                updateMessages(chatId, newMessages);
+
+                                return newMessages;
+                              });
+                            }}
                           />
                         ) : (
                           <pre>{JSON.stringify(result, null, 2)}</pre>

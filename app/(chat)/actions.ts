@@ -8,6 +8,7 @@ import { customModel } from "@/lib/ai";
 import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
+  saveMessages,
   updateChatVisiblityById,
 } from "@/lib/db/queries";
 import { DEFAULT_MODEL_NAME } from "@/lib/ai/models";
@@ -52,4 +53,16 @@ export async function updateChatVisibility({
   visibility: VisibilityType;
 }) {
   await updateChatVisiblityById({ chatId, visibility });
+}
+
+export async function updateMessages(chatId: string, messages: Message[]) {
+  await saveMessages({
+    messages: messages.map((message) => ({
+      chatId,
+      content: message.content,
+      createdAt: message.createdAt ?? new Date(),
+      id: message.id,
+      role: message.role,
+    })),
+  });
 }

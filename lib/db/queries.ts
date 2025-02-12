@@ -1,7 +1,18 @@
 import "server-only";
 
 import { genSaltSync, hashSync } from "bcrypt-ts";
-import { and, asc, desc, eq, gt, gte, inArray } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  getTableColumns,
+  gt,
+  gte,
+  inArray,
+  type SQL,
+  sql,
+} from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -17,6 +28,22 @@ import {
   vote,
 } from "./schema";
 import type { BlockKind } from "@/components/block";
+import type { PgTable } from "drizzle-orm/pg-core";
+
+const buildConflictUpdateColumns = <
+  T extends PgTable,
+  Q extends keyof T["_"]["columns"]
+>(
+  table: T,
+  columns: Q[]
+) => {
+  const cls = getTableColumns(table);
+  return columns.reduce((acc, column) => {
+    const colName = cls[column].name;
+    acc[column] = sql.raw(`excluded.${colName}`);
+    return acc;
+  }, {} as Record<Q, SQL>);
+};
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -111,7 +138,13 @@ export async function getChatById({ id }: { id: string }) {
 
 export async function saveMessages({ messages }: { messages: Array<Message> }) {
   try {
-    return await db.insert(message).values(messages);
+    return await db
+      .insert(message)
+      .values(messages)
+      .onConflictDoUpdate({
+        target: [message.id],
+        set: buildConflictUpdateColumns(message, ["content"]),
+      });
   } catch (error) {
     console.error("Failed to save messages in database", error);
     throw error;
