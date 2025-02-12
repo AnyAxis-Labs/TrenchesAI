@@ -60,7 +60,6 @@ export const siwx: SIWXConfig = {
   },
   getSessions: async () => {
     const nextAuthSession = await getSession();
-    console.log("nextAuthSession", nextAuthSession);
 
     if (!nextAuthSession) {
       return [];
