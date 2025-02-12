@@ -23,12 +23,13 @@ import {
 
 import { generateMeme } from "@/lib/ai/tools/generate-meme";
 import { generateTitleFromUserMessage } from "../../actions";
+import { getTweet } from "@/lib/ai/tools/get-tweet";
 
 export const maxDuration = 60;
 
-type AllowedTools = "generateMeme";
+type AllowedTools = "generateMeme" | "getTweet";
 
-const allTools: AllowedTools[] = ["generateMeme"];
+const allTools: AllowedTools[] = ["generateMeme", "getTweet"];
 
 export async function POST(request: Request) {
   const {
@@ -79,12 +80,17 @@ export async function POST(request: Request) {
         experimental_generateMessageId: generateUUID,
         tools: {
           generateMeme,
+          getTweet,
         },
         onFinish: async ({ response }) => {
           if (session?.user?.id) {
             try {
               const responseMessagesWithoutIncompleteToolCalls =
                 sanitizeResponseMessages(response.messages);
+
+              if (!responseMessagesWithoutIncompleteToolCalls.length) {
+                return;
+              }
 
               await saveMessages({
                 messages: responseMessagesWithoutIncompleteToolCalls.map(

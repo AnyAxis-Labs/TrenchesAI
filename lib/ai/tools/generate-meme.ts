@@ -12,11 +12,16 @@ export const generateMeme = tool({
     if (!url) {
       throw new Error("GENERATE_MEME_URL is not set");
     }
-    const response = await axios.post(url, {
-      idea: prompt,
-    });
+    try {
+      const response = await axios.post(url, {
+        idea: prompt,
+      });
 
-    const memeData = response.data;
-    return memeData;
+      const memeData = response.data;
+      return memeData;
+    } catch (error) {
+      console.error("Error generating meme", error);
+      return "Failed to generate meme";
+    }
   },
 });

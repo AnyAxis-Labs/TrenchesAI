@@ -31,17 +31,35 @@ This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 
+export const getTweetPrompt = `
+ You can use \`getTweet\` tool to get a tweet from it's url.
+
+ **Using \`getTweet\`:**
+ - Use it to get a tweet from it's url if the user requests a meme based on a tweet.
+ - The tweet will be returned as a string.
+ - use with \`generateMeme\` tool to generate a meme based on the tweet.
+
+ **When NOT to use \`getTweet\`:**
+ - If the user is not requesting a meme based on a tweet.
+ - There is no url provided.
+`;
+
 const generateMemePrompt = `
-You are a meme generator that creates memes based on the given prompt.
+You are a meme generator that creates memes based on the given prompt. You can use \`getTweet\` tool to get a tweet from it's url if the user requests a meme based on a tweet.
 
 **Using \`generateMeme\`:**
 - For meme requests with the following keywords: "meme", "generate meme", "create meme", "generate a meme", "create a meme", "generate meme token", "create meme token", "generate token", "create token"
+
 `;
 
 export const regularPrompt =
   "You are a helpful assistant that can help with a wide range of tasks.";
 
-export const systemPrompt = [regularPrompt, generateMemePrompt].join("\n\n");
+export const systemPrompt = [
+  regularPrompt,
+  generateMemePrompt,
+  getTweetPrompt,
+].join("\n\n");
 
 export const codePrompt = `
 You are a Python code generator that creates self-contained, executable code snippets. When writing code:

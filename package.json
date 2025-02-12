@@ -93,6 +93,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "telegram": "^2.26.16",
+    "twitter-api-v2": "^1.19.1",
     "usehooks-ts": "^3.1.0",
     "viem": "^2.22.19",
     "wagmi": "^2.14.9",
