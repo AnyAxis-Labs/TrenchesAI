@@ -9,6 +9,7 @@ import { auth } from "@/app/(auth)/auth";
 import { customModel } from "@/lib/ai";
 import { models } from "@/lib/ai/models";
 import { systemPrompt } from "@/lib/ai/prompts";
+import { type ToolName, generateMeme, getTweet } from "@/lib/ai/tools";
 import {
   deleteChatById,
   getChatById,
@@ -20,16 +21,11 @@ import {
   getMostRecentUserMessage,
   sanitizeResponseMessages,
 } from "@/lib/utils";
-
-import { generateMeme } from "@/lib/ai/tools/generate-meme";
 import { generateTitleFromUserMessage } from "../../actions";
-import { getTweet } from "@/lib/ai/tools/get-tweet";
 
 export const maxDuration = 60;
 
-type AllowedTools = "generateMeme" | "getTweet";
-
-const allTools: AllowedTools[] = ["generateMeme", "getTweet"];
+const allTools: ToolName[] = ["generateMeme", "getTweet"];
 
 export async function POST(request: Request) {
   const {

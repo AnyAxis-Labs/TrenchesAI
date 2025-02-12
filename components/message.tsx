@@ -1,5 +1,6 @@
 "use client";
 
+import type { ToolName } from "@/lib/ai/tools";
 import type { Vote } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 import type { ChatRequestOptions, Message } from "ai";
@@ -7,19 +8,17 @@ import cx from "classnames";
 import equal from "fast-deep-equal";
 import { AnimatePresence, motion } from "framer-motion";
 import { Fragment, memo, useState } from "react";
-import { DocumentToolCall, DocumentToolResult } from "./document";
-import { DocumentPreview } from "./document-preview";
 import { PencilEditIcon, SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { PreviewAttachment } from "./preview-attachment";
+import BridgeWidget from "./ui/bridge-widget";
 import { Button } from "./ui/button";
+import StakeWidget from "./ui/stake-widget";
 import SwapWidget from "./ui/swap-widget";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { Weather } from "./weather";
-import StakeWidget from "./ui/stake-widget";
-import BridgeWidget from "./ui/bridge-widget";
+import { CreateTokenForm } from "./create-token-form";
 
 const PurePreviewMessage = ({
   chatId,
@@ -174,31 +173,28 @@ const PurePreviewMessage = ({
             {message.toolInvocations && message.toolInvocations.length > 0 && (
               <div className="flex flex-col gap-4">
                 {message.toolInvocations.map((toolInvocation) => {
-                  const { toolName, toolCallId, state, args } = toolInvocation;
-
+                  const { toolCallId, state, args } = toolInvocation;
+                  const toolName = toolInvocation.toolName as ToolName;
                   if (state === "result") {
                     const { result } = toolInvocation;
 
                     return (
                       <div key={toolCallId}>
-                        {toolName === "getWeather" ? (
-                          <Weather weatherAtLocation={result} />
-                        ) : toolName === "createDocument" ? (
-                          <DocumentPreview
-                            isReadonly={isReadonly}
-                            result={result}
-                          />
-                        ) : toolName === "updateDocument" ? (
-                          <DocumentToolResult
-                            type="update"
-                            result={result}
-                            isReadonly={isReadonly}
-                          />
-                        ) : toolName === "requestSuggestions" ? (
-                          <DocumentToolResult
-                            type="request-suggestions"
-                            result={result}
-                            isReadonly={isReadonly}
+                        {toolName === "getTweet" ? (
+                          <Markdown>{`**Tweet:**\n\n${result}`}</Markdown>
+                        ) : toolName === "generateMeme" ? (
+                          <CreateTokenForm
+                            initialValues={{
+                              description: result.meme_info.token_story,
+                              name: result.meme_info.token_name,
+                              symbol: result.meme_info.token_symbol.replace(
+                                /[^A-Za-z]/g,
+                                ""
+                              ),
+                              url: result.meme_image,
+                            }}
+                            onSuccess={() => {}}
+                            onCancel={() => {}}
                           />
                         ) : (
                           <pre>{JSON.stringify(result, null, 2)}</pre>
@@ -213,7 +209,7 @@ const PurePreviewMessage = ({
                         skeleton: ["getWeather"].includes(toolName),
                       })}
                     >
-                      {toolName === "getWeather" ? (
+                      {/* {toolName === "getWeather" ? (
                         <Weather />
                       ) : toolName === "createDocument" ? (
                         <DocumentPreview isReadonly={isReadonly} args={args} />
@@ -229,7 +225,7 @@ const PurePreviewMessage = ({
                           args={args}
                           isReadonly={isReadonly}
                         />
-                      ) : null}
+                      ) : null} */}
                     </div>
                   );
                 })}
