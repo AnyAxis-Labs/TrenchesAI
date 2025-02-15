@@ -17,28 +17,23 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
   const suggestedActions = [
     {
       title: "Knowledge",
-      label: "What is Mantle?",
-      action: "What is Mantle?",
+      label: "What is TrenchesAI, what can it do?",
+      action: "What is TrenchesAI, what can it do?",
     },
     {
-      title: "Knowledge",
-      label: "Top Defi protocols on Mantle",
-      action: "Top Defi protocols on Mantle",
+      title: "Social Trends",
+      label: "Newest tweets, posts from CZ",
+      action: "Newest tweets, posts from CZ",
     },
     {
-      title: "Knowledge",
-      label: "Tell me about Agni Finance",
-      action: "Tell me about Agni Finance",
+      title: "Tweet to Coin",
+      label: "Generate a token from Elon Musk's newest Tweet",
+      action: "Generate a token from Elon Musk's newest Tweet",
     },
     {
-      title: "Trending",
-      label: "Top tokens on Mantle",
-      action: "Top tokens on Mantle",
-    },
-    {
-      title: "Swap",
-      label: "Swap 0.1 MNT to USDT",
-      action: "Swap 0.1 MNT to USDT",
+      title: "Create Telegram Group",
+      label: "Create a telegram group for your memes",
+      action: "Create a telegram group for your memes",
     },
   ];
 

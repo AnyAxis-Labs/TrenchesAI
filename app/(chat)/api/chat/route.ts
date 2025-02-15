@@ -9,7 +9,7 @@ import { auth } from "@/app/(auth)/auth";
 import { customModel } from "@/lib/ai";
 import { models } from "@/lib/ai/models";
 import { systemPrompt } from "@/lib/ai/prompts";
-import { type ToolName, generateMeme, getTweet } from "@/lib/ai/tools";
+import { generateMeme, getTweet } from "@/lib/ai/tools";
 import {
   deleteChatById,
   getChatById,
@@ -24,8 +24,6 @@ import {
 import { generateTitleFromUserMessage } from "../../actions";
 
 export const maxDuration = 60;
-
-const allTools: ToolName[] = ["generateMeme", "getTweet"];
 
 export async function POST(request: Request) {
   const {
@@ -71,7 +69,7 @@ export async function POST(request: Request) {
         system: systemPrompt,
         messages,
         maxSteps: 5,
-        experimental_activeTools: allTools,
+        experimental_activeTools: ["generateMeme", "getTweet"],
         experimental_transform: smoothStream({ chunking: "word" }),
         experimental_generateMessageId: generateUUID,
         tools: {

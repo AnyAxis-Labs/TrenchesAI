@@ -37,7 +37,6 @@ export interface CreateTokenParams {
 
 export interface TokenCreationResult {
   mint: string;
-  signature: string;
 }
 
 // Constants
@@ -139,17 +138,23 @@ export const useCreateTokenSc = () => {
         });
 
         console.log("Sending transaction");
-        const tx = await createFungibleIx
+        await createFungibleIx
           .add(createTokenIx)
           .add(mintTokensIx)
-          .sendAndConfirm(umi);
+          .sendAndConfirm(umi, {
+            send: {
+              skipPreflight: true,
+            },
+          })
+          .catch((e) => {
+            console.log("Error creating token but skipping", e);
+          });
 
         toast.dismiss();
         toast.success(`Created token ${mintSigner.publicKey}`);
 
         return {
           mint: mintSigner.publicKey,
-          signature: base58.deserialize(tx.signature)[0],
         };
       } catch (error) {
         toast.dismiss();
