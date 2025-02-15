@@ -69,10 +69,10 @@ export const CreateTokenForm = ({
       const token = await createToken(data);
       await createTelegramGroup({
         ...data,
-        message: `🚀 CA: ${token.mint.toBase58()}`,
+        message: `🚀 CA: ${token.mint}`,
       });
       form.reset();
-      onSuccess({ tokenAddress: token.mint.toBase58() });
+      onSuccess({ tokenAddress: token.mint });
     } catch (error) {
       console.error("Error creating token:", error);
     }
