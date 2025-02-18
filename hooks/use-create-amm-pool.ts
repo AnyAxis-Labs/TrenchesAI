@@ -70,7 +70,7 @@ export const useCreateAmmPool = () => {
           },
         });
 
-        const { txId } = await execute();
+        const { txId } = await execute({ sendAndConfirm: true });
 
         return {
           txId,
