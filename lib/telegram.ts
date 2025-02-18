@@ -17,7 +17,6 @@ const config = {
 
 // Constants
 const SESSION_FILE = "session.txt";
-const DEFAULT_CHANNEL_DESCRIPTION = "Verification portal for our group";
 
 // Initialize Telegram client
 export const initializeClient = (sessionString: string) => {
@@ -200,4 +199,22 @@ export async function updateGroupAbout(
     })
   );
   console.log("✅ Group description updated!");
+}
+
+export async function exportInviteLink(
+  client: TelegramClient,
+  chatId: BigInteger
+) {
+  const inviteLink = await client.invoke(
+    new Api.messages.ExportChatInvite({
+      peer: chatId,
+    })
+  );
+
+  const json = inviteLink.toJSON();
+  if (!json || !("link" in json)) {
+    throw new Error("Failed to export invite link: No link received");
+  }
+
+  return json.link;
 }

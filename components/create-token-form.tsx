@@ -18,14 +18,13 @@ import {
   TOKEN_DECIMALS,
   useCreateTokenSc,
 } from "@/hooks/use-create-solana-token";
+import { useCreateTelegramGroup } from "@/hooks/use-create-telegram-group";
 import { generateUUID } from "@/lib/utils";
 import { PublicKey } from "@solana/web3.js";
-import { useMutation } from "@tanstack/react-query";
 import type { Message } from "ai";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 
 interface CreateTokenFormProps {
   initialValues?: Partial<CreateTokenParams>;
@@ -58,10 +57,7 @@ export const CreateTokenForm = ({
 
   const form = useForm<ExtendedCreateTokenParams>({
     defaultValues: {
-      name: initialValues?.name ?? "",
-      symbol: initialValues?.symbol ?? "",
-      description: initialValues?.description ?? "",
-      url: initialValues?.url ?? "",
+      ...initialValues,
       adminUsername: "",
     },
   });
@@ -69,46 +65,19 @@ export const CreateTokenForm = ({
   const {
     mutateAsync: createTelegramGroup,
     isPending: isCreatingTelegramGroup,
-  } = useMutation({
-    mutationFn: async (data: ExtendedCreateTokenParams) => {
-      toast.loading("Creating Telegram group...");
-      const response = await fetch("/api/social/telegram", {
-        method: "POST",
-        body: JSON.stringify({
-          groupName: data.name,
-          groupDescription: data.description,
-          adminUsername: data.adminUsername,
-          imageUrl: data.url,
-          message: data.message,
-        }),
-      });
+  } = useCreateTelegramGroup();
 
-      toast.success("Telegram group created successfully");
-      return response.json();
-    },
-  });
-
-  const onTokenCreated = (tokenAddress: string) => {
+  // Helper function to add messages to the chat
+  const addMessage = (content: string) => {
     setMessages((messages) => {
       const newMessage: Message = {
         id: generateUUID(),
         role: "assistant",
-        content: `🚀 Token created: \`${tokenAddress}\``,
-        toolInvocations: [
-          {
-            toolCallId: generateUUID(),
-            toolName: "addLiquidity",
-            state: "result",
-            args: { tokenAddress },
-          },
-        ],
+        content,
         createdAt: new Date(),
-      } as Message;
-
+      };
       const newMessages = [...messages, newMessage];
-
       updateMessages(chatId, [newMessage]);
-
       return newMessages;
     });
   };
@@ -137,42 +106,68 @@ export const CreateTokenForm = ({
         ]);
 
       updateMessages(chatId, newMessages);
-
       return newMessages;
+    });
+  };
+
+  const createAmmPoolWithParams = async (mint: string, marketId: PublicKey) => {
+    return createAmmPool({
+      mint: new PublicKey(mint),
+      marketId,
+      baseAmount: new BN(
+        new BigNumber(MINT_AMOUNT)
+          .multipliedBy(0.1)
+          .multipliedBy(new BigNumber(10).pow(TOKEN_DECIMALS))
+          .toFixed()
+      ),
+      quoteAmount: new BN(
+        new BigNumber(4)
+          .multipliedBy(new BigNumber(10).pow(TOKEN_DECIMALS))
+          .toFixed()
+      ),
     });
   };
 
   const onSubmit = async (data: ExtendedCreateTokenParams) => {
     try {
+      // Create token
       const token = await createToken(data);
-      onTokenCreated(token.mint);
-      await createTelegramGroup({ ...data, message: `🚀 CA: ${token.mint}` });
+      addMessage(`🚀 Token created: \`${token.mint}\``);
 
+      try {
+        // Create Telegram group
+        const { inviteLink, groupId, groupName } = await createTelegramGroup({
+          ...data,
+          message: `🚀 CA: ${token.mint}`,
+        });
+        addMessage(
+          `💬 Telegram group created: [Join Group](${inviteLink}) [Group ID: ${groupId}] [Group Name: ${groupName}]`
+        );
+      } catch (error) {
+        console.error("Error creating Telegram group:", error);
+        addMessage(
+          `❌ Error: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        );
+      }
+
+      // Create market
       const marketId = await createMarket({ mint: new PublicKey(token.mint) });
+      addMessage(`📊 Market created: \`${marketId.toBase58()}\``);
 
-      console.log("marketId", marketId.toBase58());
-
-      const ammPool = await createAmmPool({
-        mint: new PublicKey(token.mint),
-        marketId,
-        baseAmount: new BN(
-          new BigNumber(MINT_AMOUNT)
-            .multipliedBy(0.1)
-            .multipliedBy(new BigNumber(10).pow(TOKEN_DECIMALS))
-            .toFixed()
-        ),
-        quoteAmount: new BN(
-          new BigNumber(4)
-            .multipliedBy(new BigNumber(10).pow(TOKEN_DECIMALS))
-            .toFixed()
-        ),
-      });
-
-      console.log(ammPool.extInfo.address.ammId.toBase58());
+      // Create AMM pool
+      const ammPool = await createAmmPoolWithParams(token.mint, marketId);
+      addMessage(
+        `💧 Liquidity pool created: \`${ammPool.extInfo.address.ammId.toBase58()}\``
+      );
 
       form.reset();
     } catch (error) {
       console.error("Error creating token:", error);
+      addMessage(
+        `❌ Error: ${error instanceof Error ? error.message : "Unknown error"}`
+      );
     }
   };
 

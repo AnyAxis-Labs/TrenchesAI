@@ -178,13 +178,13 @@ const PurePreviewMessage = ({
                     const { result } = toolInvocation;
 
                     const createTokenValues = {
-                      description: result.meme_info.token_story,
-                      name: result.meme_info.token_name,
-                      symbol: result.meme_info.token_symbol.replace(
+                      description: result?.meme_info?.token_story ?? "",
+                      name: result?.meme_info?.token_name ?? "",
+                      symbol: (result?.meme_info?.token_symbol ?? "").replace(
                         /[^A-Za-z]/g,
                         ""
                       ),
-                      url: result.meme_image,
+                      url: result?.meme_image ?? "",
                     };
 
                     return (

@@ -70,9 +70,14 @@ export async function POST(req: Request) {
     }
   }
 
+  const inviteLink = await Telegram.exportInviteLink(client, groupId);
+
   await client.destroy();
 
   return NextResponse.json({
     success: true,
+    inviteLink,
+    groupId: groupId.toString(),
+    groupName,
   });
 }
