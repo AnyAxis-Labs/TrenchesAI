@@ -229,3 +229,7 @@ export function parseQueryString<T>(queryString: string): T {
 
   return result;
 }
+
+export function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

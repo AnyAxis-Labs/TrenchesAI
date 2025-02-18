@@ -1,5 +1,6 @@
 "use client";
 
+import { updateMessages } from "@/app/(chat)/actions";
 import type { ToolName } from "@/lib/ai/tools";
 import type { Vote } from "@/lib/db/schema";
 import { cn, generateUUID } from "@/lib/utils";
@@ -8,6 +9,7 @@ import cx from "classnames";
 import equal from "fast-deep-equal";
 import { AnimatePresence, motion } from "framer-motion";
 import { Fragment, memo, useState } from "react";
+import { CreateTokenForm } from "./create-token-form";
 import { PencilEditIcon, SparklesIcon } from "./icons";
 import { Markdown } from "./markdown";
 import { MessageActions } from "./message-actions";
@@ -18,8 +20,6 @@ import { Button } from "./ui/button";
 import StakeWidget from "./ui/stake-widget";
 import SwapWidget from "./ui/swap-widget";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
-import { CreateTokenForm } from "./create-token-form";
-import { updateMessages } from "@/app/(chat)/actions";
 
 const PurePreviewMessage = ({
   chatId,
@@ -69,8 +69,6 @@ const PurePreviewMessage = ({
     typeof message.content === "string"
       ? parseFunctionCalls(message.content)
       : null;
-
-  // console.log("messageFunctions", messageFunctions)
 
   return (
     <AnimatePresence>
@@ -183,7 +181,7 @@ const PurePreviewMessage = ({
                       <div key={toolCallId}>
                         {toolName === "getTweet" ? (
                           <Markdown>{`**Tweet:**\n\n${result}`}</Markdown>
-                        ) : toolName === "generateMeme" ? (
+                        ) : toolName === "generateMeme" && result.meme_info ? (
                           <CreateTokenForm
                             initialValues={{
                               description: result.meme_info.token_story,
@@ -199,7 +197,15 @@ const PurePreviewMessage = ({
                                 const newMessage: Message = {
                                   id: generateUUID(),
                                   role: "assistant",
-                                  content: `🚀 CA: ${tokenAddress}`,
+                                  content: `🚀 CA: \`${tokenAddress}\``,
+                                  toolInvocations: [
+                                    {
+                                      toolCallId: generateUUID(),
+                                      toolName: "addLiquidity",
+                                      state: "result",
+                                      args: { tokenAddress },
+                                    },
+                                  ],
                                   createdAt: new Date(),
                                 } as Message;
 

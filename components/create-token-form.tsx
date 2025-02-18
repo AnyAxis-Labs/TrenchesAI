@@ -9,12 +9,20 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useCreateAmmPool } from "@/hooks/use-create-amm-pool";
+import { useCreateMarket } from "@/hooks/use-create-market";
 import {
   type CreateTokenParams,
+  MINT_AMOUNT,
+  TOKEN_DECIMALS,
   useCreateTokenSc,
 } from "@/hooks/use-create-solana-token";
+import { PublicKey } from "@solana/web3.js";
 import { useMutation } from "@tanstack/react-query";
+import BigNumber from "bignumber.js";
+import BN from "bn.js";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 interface CreateTokenFormProps {
   initialValues?: Partial<CreateTokenParams>;
@@ -34,6 +42,10 @@ export const CreateTokenForm = ({
 }: CreateTokenFormProps) => {
   const { mutateAsync: createToken, isPending: isCreatingToken } =
     useCreateTokenSc();
+  const { mutateAsync: createMarket, isPending: isCreatingMarket } =
+    useCreateMarket();
+  const { mutateAsync: createAmmPool, isPending: isCreatingAmmPool } =
+    useCreateAmmPool();
 
   const form = useForm<ExtendedCreateTokenParams>({
     defaultValues: {
@@ -50,6 +62,7 @@ export const CreateTokenForm = ({
     isPending: isCreatingTelegramGroup,
   } = useMutation({
     mutationFn: async (data: ExtendedCreateTokenParams) => {
+      toast.loading("Creating Telegram group...");
       const response = await fetch("/api/social/telegram", {
         method: "POST",
         body: JSON.stringify({
@@ -60,6 +73,8 @@ export const CreateTokenForm = ({
           message: data.message,
         }),
       });
+
+      toast.success("Telegram group created successfully");
       return response.json();
     },
   });
@@ -67,10 +82,29 @@ export const CreateTokenForm = ({
   const onSubmit = async (data: ExtendedCreateTokenParams) => {
     try {
       const token = await createToken(data);
-      await createTelegramGroup({
-        ...data,
-        message: `🚀 CA: ${token.mint}`,
+      await createTelegramGroup({ ...data, message: `🚀 CA: ${token.mint}` });
+      const marketId = await createMarket({ mint: new PublicKey(token.mint) });
+
+      console.log("marketId", marketId.toBase58());
+
+      const ammPool = await createAmmPool({
+        mint: new PublicKey(token.mint),
+        marketId,
+        baseAmount: new BN(
+          new BigNumber(MINT_AMOUNT)
+            .multipliedBy(0.1)
+            .multipliedBy(new BigNumber(10).pow(TOKEN_DECIMALS))
+            .toFixed()
+        ),
+        quoteAmount: new BN(
+          new BigNumber(4)
+            .multipliedBy(new BigNumber(10).pow(TOKEN_DECIMALS))
+            .toFixed()
+        ),
       });
+
+      console.log(ammPool.extInfo.address.ammId.toBase58());
+
       form.reset();
       onSuccess({ tokenAddress: token.mint });
     } catch (error) {

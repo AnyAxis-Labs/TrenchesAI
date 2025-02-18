@@ -6,7 +6,6 @@ import {
   type AppKitNetwork,
   solana,
   solanaDevnet,
-  solanaTestnet,
 } from "@reown/appkit/networks";
 import {
   createAppKit,
@@ -22,10 +21,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getSession, signIn, signOut } from "next-auth/react";
 import React from "react";
 
-const networks = [solana, solanaTestnet, solanaDevnet] as [
-  AppKitNetwork,
-  ...AppKitNetwork[]
-];
+const networks = [solana, solanaDevnet] as [AppKitNetwork, ...AppKitNetwork[]];
 export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID ?? "";
 
 //Set up the Wagmi Adapter (Config)

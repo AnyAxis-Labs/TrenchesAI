@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  webpack: (config) => {
+  transpilePackages: ["openbook-v2"],
+  webpack: (config, { isServer }) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
+    if (!isServer) {
+      config.resolve.fallback.fs = false;
+    }
     return config;
   },
   serverExternalPackages: ["twitter-api-v2"],

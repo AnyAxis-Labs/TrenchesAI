@@ -40,8 +40,8 @@ export interface TokenCreationResult {
 }
 
 // Constants
-const TOKEN_DECIMALS = 9;
-const MINT_AMOUNT = 10_000_000_000;
+export const TOKEN_DECIMALS = 9;
+export const MINT_AMOUNT = 10_000_000_000;
 
 // Main hook
 export const useCreateTokenSc = () => {
@@ -141,11 +141,7 @@ export const useCreateTokenSc = () => {
         await createFungibleIx
           .add(createTokenIx)
           .add(mintTokensIx)
-          .sendAndConfirm(umi, {
-            send: {
-              skipPreflight: true,
-            },
-          })
+          .send(umi, {})
           .catch((e) => {
             console.log("Error creating token but skipping", e);
           });
