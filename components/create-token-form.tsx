@@ -1,3 +1,4 @@
+import { updateMessages } from "@/app/(chat)/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -17,8 +18,10 @@ import {
   TOKEN_DECIMALS,
   useCreateTokenSc,
 } from "@/hooks/use-create-solana-token";
+import { generateUUID } from "@/lib/utils";
 import { PublicKey } from "@solana/web3.js";
 import { useMutation } from "@tanstack/react-query";
+import type { Message } from "ai";
 import BigNumber from "bignumber.js";
 import BN from "bn.js";
 import { useForm } from "react-hook-form";
@@ -26,8 +29,12 @@ import { toast } from "sonner";
 
 interface CreateTokenFormProps {
   initialValues?: Partial<CreateTokenParams>;
-  onCancel: () => void;
-  onSuccess: ({ tokenAddress }: { tokenAddress: string }) => void;
+  chatId: string;
+  message: Message;
+  toolCallId: string;
+  setMessages: (
+    messages: Message[] | ((messages: Message[]) => Message[])
+  ) => void;
 }
 
 interface ExtendedCreateTokenParams extends CreateTokenParams {
@@ -37,8 +44,10 @@ interface ExtendedCreateTokenParams extends CreateTokenParams {
 
 export const CreateTokenForm = ({
   initialValues,
-  onSuccess,
-  onCancel,
+  chatId,
+  message,
+  setMessages,
+  toolCallId,
 }: CreateTokenFormProps) => {
   const { mutateAsync: createToken, isPending: isCreatingToken } =
     useCreateTokenSc();
@@ -79,10 +88,66 @@ export const CreateTokenForm = ({
     },
   });
 
+  const onTokenCreated = (tokenAddress: string) => {
+    setMessages((messages) => {
+      const newMessage: Message = {
+        id: generateUUID(),
+        role: "assistant",
+        content: `🚀 Token created: \`${tokenAddress}\``,
+        toolInvocations: [
+          {
+            toolCallId: generateUUID(),
+            toolName: "addLiquidity",
+            state: "result",
+            args: { tokenAddress },
+          },
+        ],
+        createdAt: new Date(),
+      } as Message;
+
+      const newMessages = [...messages, newMessage];
+
+      updateMessages(chatId, [newMessage]);
+
+      return newMessages;
+    });
+  };
+
+  const onCancel = () => {
+    setMessages((messages) => {
+      const newMessages = messages
+        .map((msg) => {
+          if (msg.id === message.id) {
+            return {
+              ...msg,
+              toolInvocations: msg.toolInvocations?.filter(
+                (toolInvocation) => toolInvocation.toolCallId !== toolCallId
+              ),
+            };
+          }
+          return msg;
+        })
+        .concat([
+          {
+            id: generateUUID(),
+            role: "assistant",
+            content: `Action cancelled`,
+            createdAt: new Date(),
+          },
+        ]);
+
+      updateMessages(chatId, newMessages);
+
+      return newMessages;
+    });
+  };
+
   const onSubmit = async (data: ExtendedCreateTokenParams) => {
     try {
       const token = await createToken(data);
+      onTokenCreated(token.mint);
       await createTelegramGroup({ ...data, message: `🚀 CA: ${token.mint}` });
+
       const marketId = await createMarket({ mint: new PublicKey(token.mint) });
 
       console.log("marketId", marketId.toBase58());
@@ -106,7 +171,6 @@ export const CreateTokenForm = ({
       console.log(ammPool.extInfo.address.ammId.toBase58());
 
       form.reset();
-      onSuccess({ tokenAddress: token.mint });
     } catch (error) {
       console.error("Error creating token:", error);
     }

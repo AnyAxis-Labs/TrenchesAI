@@ -177,76 +177,27 @@ const PurePreviewMessage = ({
                   if (state === "result") {
                     const { result } = toolInvocation;
 
+                    const createTokenValues = {
+                      description: result.meme_info.token_story,
+                      name: result.meme_info.token_name,
+                      symbol: result.meme_info.token_symbol.replace(
+                        /[^A-Za-z]/g,
+                        ""
+                      ),
+                      url: result.meme_image,
+                    };
+
                     return (
                       <div key={toolCallId}>
                         {toolName === "getTweet" ? (
                           <Markdown>{`**Tweet:**\n\n${result}`}</Markdown>
                         ) : toolName === "generateMeme" && result.meme_info ? (
                           <CreateTokenForm
-                            initialValues={{
-                              description: result.meme_info.token_story,
-                              name: result.meme_info.token_name,
-                              symbol: result.meme_info.token_symbol.replace(
-                                /[^A-Za-z]/g,
-                                ""
-                              ),
-                              url: result.meme_image,
-                            }}
-                            onSuccess={({ tokenAddress }) => {
-                              setMessages((messages) => {
-                                const newMessage: Message = {
-                                  id: generateUUID(),
-                                  role: "assistant",
-                                  content: `🚀 CA: \`${tokenAddress}\``,
-                                  toolInvocations: [
-                                    {
-                                      toolCallId: generateUUID(),
-                                      toolName: "addLiquidity",
-                                      state: "result",
-                                      args: { tokenAddress },
-                                    },
-                                  ],
-                                  createdAt: new Date(),
-                                } as Message;
-
-                                const newMessages = [...messages, newMessage];
-
-                                updateMessages(chatId, [newMessage]);
-
-                                return newMessages;
-                              });
-                            }}
-                            onCancel={() => {
-                              setMessages((messages) => {
-                                const newMessages = messages
-                                  .map((msg) => {
-                                    if (msg.id === message.id) {
-                                      return {
-                                        ...msg,
-                                        toolInvocations:
-                                          msg.toolInvocations?.filter(
-                                            (toolInvocation) =>
-                                              toolInvocation.toolCallId !==
-                                              toolCallId
-                                          ),
-                                      };
-                                    }
-                                    return msg;
-                                  })
-                                  .concat([
-                                    {
-                                      id: generateUUID(),
-                                      role: "assistant",
-                                      content: `Action cancelled`,
-                                      createdAt: new Date(),
-                                    },
-                                  ]);
-
-                                updateMessages(chatId, newMessages);
-
-                                return newMessages;
-                              });
-                            }}
+                            initialValues={createTokenValues}
+                            chatId={chatId}
+                            message={message}
+                            toolCallId={toolCallId}
+                            setMessages={setMessages}
                           />
                         ) : (
                           <pre>{JSON.stringify(result, null, 2)}</pre>
