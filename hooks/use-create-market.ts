@@ -49,6 +49,7 @@ export const useCreateMarket = () => {
           },
           lotSize: 1,
           tickSize: 0.01,
+          lowestFeeMarket: true,
           dexProgramId:
             raydium.cluster === "mainnet"
               ? OPEN_BOOK_PROGRAM
