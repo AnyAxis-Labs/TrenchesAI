@@ -1,40 +1,32 @@
 "use client";
 
-import { SolanaAdapter } from "@reown/appkit-adapter-solana/react";
+import { sonic, sonicBlazeTestnet } from "@/lib/chains";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { DefaultSIWX } from "@reown/appkit-siwx";
-import {
-  type AppKitNetwork,
-  solana,
-  solanaDevnet,
-} from "@reown/appkit/networks";
+import type { AppKitNetwork } from "@reown/appkit/networks";
 import {
   createAppKit,
   type Metadata,
   type SIWXConfig,
   type SIWXSession,
 } from "@reown/appkit/react";
-import {
-  PhantomWalletAdapter,
-  SolflareWalletAdapter,
-} from "@solana/wallet-adapter-wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { getSession, signIn, signOut } from "next-auth/react";
 import React from "react";
+import { type Config, cookieToInitialState, WagmiProvider } from "wagmi";
 
-const networks = [solana, solanaDevnet] as [AppKitNetwork, ...AppKitNetwork[]];
-export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID ?? "";
-
+const networks = [sonic, sonicBlazeTestnet] as [
+  AppKitNetwork,
+  ...AppKitNetwork[]
+];
+export const projectId = "375bbb04e24df1988fe0f629fbe4096a";
 //Set up the Wagmi Adapter (Config)
-// export const wagmiAdapter = new WagmiAdapter({
-//   ssr: true,
-//   projectId,
-//   networks,
-// });
-// export const config = wagmiAdapter.wagmiConfig;
-
-const solanaWeb3JsAdapter = new SolanaAdapter({
-  wallets: [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
+export const wagmiAdapter = new WagmiAdapter({
+  ssr: true,
+  projectId,
+  networks,
 });
+export const config = wagmiAdapter.wagmiConfig;
 
 // Set up queryClient
 const queryClient = new QueryClient();
@@ -84,30 +76,25 @@ const metadata: Metadata = {
 
 // Create the modal
 export const modal = createAppKit({
-  adapters: [solanaWeb3JsAdapter],
+  adapters: [wagmiAdapter],
   projectId,
   networks,
   metadata,
   siwx,
-  features: {
-    analytics: false, // Optional - defaults to your Cloud configuration
-  },
+  features: {},
 });
 
 function ContextProvider({ children }: React.PropsWithChildren) {
-  // const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config);
+  const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig as Config);
 
-  // return (
-  //   <WagmiProvider
-  //     config={wagmiAdapter.wagmiConfig as Config}
-  //     initialState={initialState}
-  //     reconnectOnMount
-  //   >
-  //     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  //   </WagmiProvider>
-  // );
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <WagmiProvider
+      config={wagmiAdapter.wagmiConfig as Config}
+      initialState={initialState}
+      reconnectOnMount
+    >
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </WagmiProvider>
   );
 }
 
