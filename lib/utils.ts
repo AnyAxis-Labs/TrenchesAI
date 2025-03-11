@@ -9,6 +9,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 import type { Message as DBMessage, Document } from "@/lib/db/schema";
+import { customAlphabet } from "nanoid";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -233,3 +234,5 @@ export function parseQueryString<T>(queryString: string): T {
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export const generateTokenId = customAlphabet("1234567890", 32);

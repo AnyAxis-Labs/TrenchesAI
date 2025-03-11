@@ -7,8 +7,7 @@ import ContextProvider from "@/components/providers/context-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://chat.vercel.ai"),
-  title: "AI Chatbot",
+  title: "TrenchesAI",
   description: "AI chatbot for trading.",
 };
 

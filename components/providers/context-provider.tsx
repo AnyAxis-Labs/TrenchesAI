@@ -68,8 +68,8 @@ export const siwx: SIWXConfig = {
 
 // Set up metadata
 const metadata: Metadata = {
-  name: "AI-terminal",
-  description: "AI Terminal",
+  name: "TrenchesAI",
+  description: "TrenchesAI",
   url: "https://AI-terminal.vercel.app", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
@@ -79,6 +79,7 @@ export const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
   networks,
+  defaultNetwork: sonicBlazeTestnet,
   metadata,
   siwx,
   features: {},
